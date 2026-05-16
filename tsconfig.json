@@ -21,6 +21,8 @@
     "paths": {
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
+      "@/drizzle/*": ["./drizzle/*"],
+      "@/lib/*": ["./lib/*"]
     }
   },
   "include": [

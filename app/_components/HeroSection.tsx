@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function HeroSection() {
   const [animation, setAnimation] = useState(false);
@@ -14,7 +15,7 @@ function HeroSection() {
   const imageWrapperRef = useRef(null);
   const textContainerRef = useRef(null);
   const buttonRef = useRef(null);
-
+  const router = useRouter();
   useGSAP(
     () => {
       if (!animation) return;
@@ -31,10 +32,9 @@ function HeroSection() {
           { clipPath: "inset(45% 45% 45% 45% round 32px)", opacity: 1 },
           {
             clipPath: "inset(0% 0% 0% 0% round 0px)",
-            duration: 1.5,
+            duration: 1,
             ease: "power3.inOut",
           },
-          "-=0.2",
         )
         .fromTo(
           buttonRef.current,
@@ -51,7 +51,7 @@ function HeroSection() {
     gsap.to(colorLayerRef.current, {
       clipPath: "inset(0% 0% 0% 0%)",
       duration: 1.2,
-      ease: "power3.inOut",
+      ease: "power4.inOut",
     });
   };
 
@@ -61,6 +61,11 @@ function HeroSection() {
       duration: 1.2,
       ease: "power3.inOut",
     });
+  };
+
+  const handleNavigation = () => {
+    setAnimation(false);
+    router.push("/signup");
   };
 
   return (
@@ -75,7 +80,6 @@ function HeroSection() {
           alt="cast"
           fill
           priority
-          quality={1}
           className="object-cover"
         />
       </div>
@@ -93,7 +97,6 @@ function HeroSection() {
           className="object-cover"
         />
       </div>
-
 
       <div className="relative z-20 flex flex-col h-full items-center justify-center font-oswald">
         <div
@@ -144,6 +147,7 @@ function HeroSection() {
             onMouseLeave={handleColorHide}
             onTouchStart={handleColorReveal}
             onTouchEnd={handleColorHide}
+            onClick={handleNavigation}
           >
             <Plus className="transition-transform duration-200 ease-in-out group-hover:rotate-90" />
             Join Us
