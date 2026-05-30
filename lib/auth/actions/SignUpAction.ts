@@ -1,12 +1,12 @@
 "use server";
 
 import z from "zod";
-import { signUpSchema } from "../schemas/Schemas";
-import {auth } from "@/lib/auth/auth";
+import { signUpSchema } from "../../schemas/Schemas";
+import { auth } from "@/lib/auth/auth";
 import { CreateUser } from "@/drizzle/services/Users";
 
 export const SignUpAction = async (
-  data: z.infer<typeof signUpSchema>
+  data: z.infer<typeof signUpSchema>,
 ): Promise<{ error: boolean; message?: string }> => {
   // 1. Validate
   const parsed = signUpSchema.safeParse(data);

@@ -2,7 +2,6 @@
 import { auth } from "@/lib/auth/auth";
 import db from "@/drizzle/db";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { cache } from "react";
 
@@ -11,8 +10,7 @@ export const getCurrentUser = cache(async () => {
     headers: await headers(),
   });
 
-  if (!session) redirect("/sign-in");
-
+  if (!session) return null;
   return db.query.user.findFirst({
     where: (user) => eq(user.id, session.user.id),
     with: {

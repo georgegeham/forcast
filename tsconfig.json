@@ -22,7 +22,8 @@
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
       "@/drizzle/*": ["./drizzle/*"],
-      "@/lib/*": ["./lib/*"]
+      "@/lib/*": ["./lib/*"],
+      "@/services/*": ["./drizzle/services/*"]
     }
   },
   "include": [

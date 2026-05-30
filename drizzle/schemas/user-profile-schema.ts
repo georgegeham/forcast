@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, date, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, date } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 import { relations } from "drizzle-orm";
 import { userProfilePlay } from "./play-schema";
@@ -18,8 +18,6 @@ export const userProfile = pgTable("user_profile", {
   }),
 
   birthday: date("birthday"),
-
-  age: integer("age"),
 
   phone: text("phone"),
 

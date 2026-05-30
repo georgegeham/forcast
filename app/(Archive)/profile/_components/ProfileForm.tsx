@@ -3,21 +3,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
-import { useRef } from "react";
+import { useRef, useState, useTransition } from "react";
 
 import { CurrentUser } from "@/lib/auth/hooks/getCurrentUserInfo";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
-
 import {
   Select,
   SelectContent,
@@ -25,45 +22,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import { LoadingSwap } from "@/components/ui/loading-swap";
-
 import { CalendarIcon } from "lucide-react";
-
 import { Calendar } from "@/components/ui/calendar";
-
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-
 import { format } from "date-fns";
-
 import { cn } from "@/lib/utils";
 import { uploadAvatar } from "@/lib/supabase/actions/upload-avatar";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-const ProfileSchema = z.object({
-  profileImage: z.string().min(1, "Profile image is required"),
-  name: z.string().min(1, "Name is required"),
-  bio: z.string().min(1, "Bio is required"),
-  plays: z.array(z.string()).optional(),
-  gender: z.enum(["male", "female"]),
-  birthday: z.string().min(1, "Birthday is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  email: z.email().min(1, "Email is required"),
-  interviewer: z.string().optional(),
-});
+import { ProfileSchema } from "@/lib/schemas/Schemas";
+import { updateUserProfile } from "@/drizzle/actions/Users";
+import { useRouter } from "next/navigation";
 
 type ProfileSchema = z.infer<typeof ProfileSchema>;
 
 const ProfileForm = ({ user }: { user: CurrentUser }) => {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [avatarUrl, setAvatarUrl] = useState(() =>
+    user?.image ? `${user.image}?v=${Date.now()}` : "",
+  );
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProfileSchema>({
     resolver: zodResolver(ProfileSchema),
@@ -80,30 +66,62 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
     },
   });
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    try{
-
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // upload
+    const previewUrl = URL.createObjectURL(file);
+    setAvatarUrl(previewUrl);
+
     const formData = new FormData();
     formData.append("file", file);
-    const url = await uploadAvatar(formData, "/profile");
-    if (url.error) {
-      toast.error(url.message || "Failed to upload avatar");
-      return;
-    }
 
-   }catch(e){
-    toast.error(e instanceof Error ? e.message : "An error occurred while uploading the avatar");
-   }
+    startTransition(async () => {
+      try {
+        const result = await uploadAvatar(formData, "/profile");
+
+        if (result.error) {
+          toast.error(result.message || "Failed to upload avatar");
+          // revert preview on failure
+          setAvatarUrl(user?.image ? `${user.image}?v=${Date.now()}` : "");
+          return;
+        }
+
+        const bustedUrl = `${result.message}?v=${Date.now()}`;
+        setAvatarUrl(bustedUrl);
+        form.setValue("profileImage", result.message);
+
+        toast.success("Avatar updated successfully");
+      } catch (e) {
+        toast.error(
+          e instanceof Error
+            ? e.message
+            : "An error occurred while uploading the avatar",
+        );
+        setAvatarUrl(user?.image ? `${user.image}?v=${Date.now()}` : "");
+      } finally {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    });
   };
 
   const onSubmit = async (data: ProfileSchema) => {
-    console.log(data);
+    try {
+      const result = await updateUserProfile(user.id, data);
+      if (result.error) {
+        throw new Error(result.message || "Failed to update profile");
+      }
+      toast.success(result.message || "Profile updated successfully");
+      router.push("/home");
+    } catch (e) {
+      toast.error(
+        e instanceof Error
+          ? e.message
+          : "An error occurred while updating the profile",
+      );
+    }
   };
 
   return (
@@ -119,8 +137,7 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
         <CardContent>
           <div className="flex flex-col gap-4 rounded-xl border border-dashed p-5 sm:flex-row sm:items-center">
             <Avatar className="h-20 w-20 shrink-0">
-              <AvatarImage src={user?.image || ""} alt={user?.name ?? "Avatar"} />
-
+              <AvatarImage src={avatarUrl} alt={user?.name ?? "Avatar"} />
               <AvatarFallback className="text-2xl">
                 {user?.name?.[0]?.toUpperCase() ?? "?"}
               </AvatarFallback>
@@ -129,7 +146,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
             <div className="space-y-3">
               <div>
                 <p className="text-sm font-medium">Upload a profile picture</p>
-
                 <p className="text-sm text-muted-foreground">
                   JPG, PNG or WEBP · Max 10MB
                 </p>
@@ -139,8 +155,9 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={isPending}
               >
-                Choose Photo
+                <LoadingSwap isLoading={isPending}>Choose Photo</LoadingSwap>
               </Button>
 
               <input
@@ -171,10 +188,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
 
         <CardContent>
           <FieldGroup className="grid grid-cols-1 gap-5 md:grid-cols-6">
-            {/* Name */}
             <Field className="md:col-span-2">
               <FieldLabel htmlFor="name">Full Name</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="name"
@@ -186,7 +201,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                       placeholder="John Doe"
                       aria-invalid={fieldState.invalid}
                     />
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -195,10 +209,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               />
             </Field>
 
-            {/* Email */}
             <Field className="md:col-span-2">
               <FieldLabel htmlFor="email">Email</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="email"
@@ -211,7 +223,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                       placeholder="you@example.com"
                       aria-invalid={fieldState.invalid}
                     />
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -220,10 +231,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               />
             </Field>
 
-            {/* Phone */}
             <Field className="md:col-span-2">
               <FieldLabel htmlFor="phone">Phone</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="phone"
@@ -236,7 +245,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                       placeholder="0 100 000 0000"
                       aria-invalid={fieldState.invalid}
                     />
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -245,10 +253,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               />
             </Field>
 
-            {/* Gender */}
             <Field className="md:col-span-2">
               <FieldLabel>Gender</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="gender"
@@ -258,14 +264,11 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                       <SelectTrigger aria-invalid={fieldState.invalid}>
                         <SelectValue placeholder="Select gender" />
                       </SelectTrigger>
-
                       <SelectContent>
                         <SelectItem value="male">Male</SelectItem>
-
                         <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -274,10 +277,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               />
             </Field>
 
-            {/* Birthday */}
             <Field className="md:col-span-2">
               <FieldLabel htmlFor="birthday">Birthday</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="birthday"
@@ -294,7 +295,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                           )}
                         >
                           <CalendarIcon className="mr-2 h-4 w-4" />
-
                           {field.value ? (
                             format(new Date(field.value), "PPP")
                           ) : (
@@ -302,7 +302,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                           )}
                         </Button>
                       </PopoverTrigger>
-
                       <PopoverContent className="w-auto p-0" align="start">
                         <Calendar
                           mode="single"
@@ -315,13 +314,11 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                           }
                           onSelect={(date) => {
                             if (!date) return;
-
                             field.onChange(format(date, "yyyy-MM-dd"));
                           }}
                         />
                       </PopoverContent>
                     </Popover>
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -329,22 +326,22 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                 )}
               />
             </Field>
-            {/* Interviewer */}
-            <Field className="md:col-span-2">
-              <FieldLabel htmlFor="interviewer">Interviewer ID</FieldLabel>
 
+            <Field className="md:col-span-2">
+              <FieldLabel htmlFor="interviewer">Interviewer Name</FieldLabel>
               <Controller
                 control={form.control}
                 name="interviewer"
+                disabled={true}
                 render={({ field, fieldState }) => (
                   <>
                     <Input
                       {...field}
                       id="interviewer"
-                      placeholder="Assigned interviewer"
+                      disabled
+                      placeholder="Comming Soon"
                       aria-invalid={fieldState.invalid}
                     />
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -353,10 +350,8 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               />
             </Field>
 
-            {/* Bio */}
             <Field className="md:col-span-6">
               <FieldLabel htmlFor="bio">Bio</FieldLabel>
-
               <Controller
                 control={form.control}
                 name="bio"
@@ -366,10 +361,9 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                       {...field}
                       id="bio"
                       placeholder="Tell us a little about yourself..."
-                      className="min-h-[120px] resize-none"
+                      className="min-h-30 resize-none"
                       aria-invalid={fieldState.invalid}
                     />
-
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}
@@ -381,7 +375,6 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
         </CardContent>
       </Card>
 
-      {/* Submit */}
       <div className="flex justify-end">
         <Button
           type="button"

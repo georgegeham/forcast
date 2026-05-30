@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { LoadingSwap } from "@/components/ui/loading-swap";
-import { signUpSchema } from "@/lib/auth/schemas/Schemas";
+import { signUpSchema } from "@/lib/schemas/Schemas";
 import { SignUpAction } from "@/lib/auth/actions/SignUpAction";
 import { toast } from "sonner";
 

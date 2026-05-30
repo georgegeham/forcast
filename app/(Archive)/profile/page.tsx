@@ -10,9 +10,11 @@ import {
   CurrentUser,
   getCurrentUser,
 } from "@/lib/auth/hooks/getCurrentUserInfo";
+import { redirect } from "next/navigation";
 
 const page = async () => {
   const user = await getCurrentUser();
+  if (!user) return redirect("/signin");
   return (
     <Card className="w-full max-sm:my-10">
       <CardHeader>

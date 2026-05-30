@@ -13,6 +13,7 @@ import { CurrentUser } from "@/lib/auth/hooks/getCurrentUserInfo";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const UserAvatar = ({ user }: { user: CurrentUser | null }) => {
   const router = useRouter();
@@ -58,6 +59,12 @@ const UserAvatar = ({ user }: { user: CurrentUser | null }) => {
                 {user?.email}
               </p>
             </div>
+          </div>
+          <div className="border-t" />
+          <div className="flex items-center gap-2">
+            <Link className="cursor-pointer" href="/profile">
+              Profile
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <Button
