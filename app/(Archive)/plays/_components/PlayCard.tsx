@@ -29,6 +29,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import DeletePlayButton from "./DeletePlayButton";
 
 const PlayCard = ({ play }: { play: Play }) => {
   const router = useRouter();
@@ -92,47 +93,7 @@ const PlayCard = ({ play }: { play: Play }) => {
         >
           <Pencil className="w-4 h-4" />
         </Button>
-        {userRole === "admin" && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="bg-stone-900/80 hover:bg-stone-800 text-red-400 hover:text-red-300"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogMedia>
-                  <Trash2 className="text-red-400" />
-                </AlertDialogMedia>
-                <AlertDialogTitle>Delete Play</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete &ldquo;{play.name}&rdquo;?
-                  This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  onClick={async () => {
-                    const result = await deletePlayAction(play.id);
-                    if (result?.error) {
-                      toast.error(result.message ?? "Failed to delete");
-                    } else {
-                      toast.success("Play deleted");
-                    }
-                  }}
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        {userRole === "admin" && <DeletePlayButton play={play} />}
       </div>
     </Card>
   );

@@ -54,6 +54,7 @@ import {
   getYouTubeEmbedUrl,
   addBtnClass,
 } from "@/lib/utils";
+import DeletePlayButton from "../../_components/DeletePlayButton";
 
 type ModalType = "photos" | "video" | "trophy" | "festival" | null;
 
@@ -230,32 +231,18 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <PlayActions play={play} />
-            <button
-              onClick={() => router.push(`/plays/${play.id}/edit`)}
-              className="text-stone-500 hover:text-amber-400 transition-colors"
-              title="Edit play"
-            >
-              <Pencil className="w-4 h-4" />
-            </button>
-            {userRole === "admin" && (
+            <div className="flex-1 flex items-center justify-center mt-2 gap-3">
               <button
-                onClick={async () => {
-                  if (!confirm("Delete this play permanently?")) return;
-                  const result = await deletePlayAction(play.id);
-                  if (result?.error) {
-                    toast.error(result.message ?? "Failed to delete");
-                  } else {
-                    window.location.href = "/plays";
-                  }
-                }}
-                className="text-stone-500 hover:text-red-400 transition-colors"
-                title="Delete play"
+                onClick={() => router.push(`/plays/${play.id}/edit`)}
+                className="text-stone-500 hover:text-amber-400 transition-colors"
+                title="Edit play"
               >
-                <Trash2 className="w-4 h-4" />
+                <Pencil className="w-4 h-4" />
               </button>
-            )}
+              {userRole === "admin" && <DeletePlayButton play={play} />}
+            </div>
           </div>
         </div>
 
