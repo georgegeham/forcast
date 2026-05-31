@@ -16,7 +16,7 @@ const page = async () => {
   const user = await getCurrentUser();
   if (!user) return redirect("/signin");
   return (
-    <Card className="w-full max-sm:my-10">
+    <Card className="w-full max-sm:my-10 min-h-screen my-10">
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>Manage Your Profile</CardDescription>

@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 const Navbar = async () => {
   const user = await getCurrentUser();
   if (user === null) redirect("/signin");
+  if (user?.completedProfile === false) {
+    return null;
+  }
   return (
     <div className="h-nav w-full">
       <nav className="container max-sm:px-4 mx-auto flex h-full items-center justify-between overflow-hidden">

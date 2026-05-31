@@ -23,7 +23,6 @@ export const SignUpAction = async (
     // 2. Create the auth user via Better Auth
     const result = await auth.api.signUpEmail({
       body: { name, email, password },
-      asResponse: false,
     });
 
     if (!result?.user?.id) {

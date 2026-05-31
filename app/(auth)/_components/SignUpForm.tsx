@@ -13,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { LoadingSwap } from "@/components/ui/loading-swap";
 import { signUpSchema } from "@/lib/schemas/Schemas";
-import { SignUpAction } from "@/lib/auth/actions/SignUpAction";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth/client_auth";
 
 type SignUpSchema = z.infer<typeof signUpSchema>;
 const SignUpForm = () => {
@@ -30,12 +30,14 @@ const SignUpForm = () => {
   const router = useRouter();
 
   const handleSignUp = async (data: SignUpSchema) => {
-    const result = await SignUpAction(data);
+    const result = await authClient.signUp.email(data);
     if (result.error) {
-      toast.error(result.message || "Error While Sign Up please try again later");
+      toast.error(
+        result.error.message || "Error While Sign Up please try again later",
+      );
       return;
     }
-    toast.success(result.message ||"Welcome Onboard");
+    toast.success("Welcome Onboard");
     router.push("/profile");
   };
   return (

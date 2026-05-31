@@ -9,8 +9,10 @@ import z from "zod";
 export async function getUsers() {
   return await db.query.user.findMany({
     with: { profile: true },
+    where: (p, { eq }) => eq(p.completedProfile, true),
   });
 }
+
 
 export const getUserProfile = async (userId: string) => {
   try {
