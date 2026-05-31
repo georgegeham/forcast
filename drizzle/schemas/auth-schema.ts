@@ -14,6 +14,7 @@ export const user = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   completedProfile: boolean("completed_profile").default(false),
+  role: text("role").default("user").notNull(),
 });
 
 export const session = pgTable(

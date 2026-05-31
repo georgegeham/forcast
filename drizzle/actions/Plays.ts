@@ -9,9 +9,13 @@ import {
   joinCast as joinCastService,
   claimDirector as claimDirectorService,
   claimWriter as claimWriterService,
+  createPlayFestival,
+  createPlayComment,
+  deletePlay as deletePlayService,
 } from "@/drizzle/services/Plays";
 import { uploadPlayImage } from "@/lib/supabase/actions/upload-play-image";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/auth/admin";
 
 export async function createPlayAction(_: unknown, formData: FormData) {
   try {
@@ -55,10 +59,12 @@ export async function createPlayAction(_: unknown, formData: FormData) {
 
     const trophies = JSON.parse((formData.get("trophies") as string) || "[]");
 
+    const festival = JSON.parse((formData.get("festivals") as string) || "[]");
     await Promise.all([
       createPlayImages(createdPlay.id, imageUrls),
       createPlayVideos(createdPlay.id, videos),
       createPlayTrophies(createdPlay.id, trophies),
+      createPlayFestival(createdPlay.id, festival),
     ]);
 
     return {
@@ -135,6 +141,149 @@ export async function claimWriterAction({
     return {
       error: true,
       message: e instanceof Error ? e.message : "Failed to claim writer",
+    };
+  }
+}
+
+export async function addPlayImage({
+  playId,
+  files,
+}: {
+  playId: string;
+  files: FormData;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    const images = files.getAll("images") as File[];
+    const imagesURLs = [];
+    for (const image of images) {
+      const url = await uploadPlayImage(image, `plays/${playId}/gallery`);
+      imagesURLs.push(url);
+    }
+    await createPlayImages(playId, imagesURLs);
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Photos added successfully",
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to add photos",
+    };
+  }
+}
+
+export async function addPlayVideo({
+  playId,
+  url,
+}: {
+  playId: string;
+  url: string;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await createPlayVideos(playId, [url]);
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Video added successfully",
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to add video",
+    };
+  }
+}
+
+export async function addPlayTrophy({
+  playId,
+  trophy,
+}: {
+  playId: string;
+  trophy: {
+    title: string;
+    description?: string;
+  };
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await createPlayTrophies(playId, [trophy]);
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Trophy added successfully",
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to add trophy",
+    };
+  }
+}
+
+export async function addPlayFestival({
+  playId,
+  festival,
+}: {
+  playId: string;
+  festival: {
+    title: string;
+    location?: string | null;
+  };
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await createPlayFestival(playId, [festival]);
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Festival added successfully",
+    };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to add festival",
+    };
+  }
+}
+
+export async function addPlayComment({
+  playId,
+  userId,
+  content,
+}: {
+  playId: string;
+  userId: string;
+  content: string;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await createPlayComment({ playId, userId, content });
+    revalidatePath(`/plays/${playId}`);
+    return { error: false, message: "Comment added" };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to add comment",
+    };
+  }
+}
+
+export async function deletePlayAction(
+  playId: string,
+): Promise<{ error: boolean; message?: string }> {
+  try {
+    await requireAdmin();
+    await deletePlayService(playId);
+    revalidatePath("/plays");
+    return { error: false, message: "Play deleted" };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to delete play",
     };
   }
 }

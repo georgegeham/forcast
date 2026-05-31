@@ -69,6 +69,7 @@ const AddPlayPage = () => {
       photosBucket: "",
       videoLinks: [],
       trophies: [],
+      festivals: [],
       thumbnail: undefined,
       images: [],
     },
@@ -92,6 +93,15 @@ const AddPlayPage = () => {
     name: "trophies",
   });
 
+  const {
+    fields: festivalFields,
+    append: appendFestival,
+    remove: removeFestival,
+  } = useFieldArray({
+    control: form.control,
+    name: "festivals",
+  });
+
   const onSubmit = async (data: CreatePlayValues) => {
     try {
       const formData = new FormData();
@@ -107,6 +117,7 @@ const AddPlayPage = () => {
       formData.append("playDate", data.playDate ?? "");
 
       formData.append("photosBucket", data.photosBucket ?? "");
+
       if (data.videoLinks) {
         formData.append(
           "videoLinks",
@@ -115,6 +126,8 @@ const AddPlayPage = () => {
       }
 
       formData.append("trophies", JSON.stringify(data.trophies));
+
+      formData.append("festivals", JSON.stringify(data.festivals));
 
       if (data.thumbnail instanceof File) {
         formData.append("thumbnail", data.thumbnail);
@@ -391,7 +404,6 @@ const AddPlayPage = () => {
                     ...newFiles.map((file) => URL.createObjectURL(file)),
                   ]);
 
-                  // reset input so same image can be selected again
                   e.target.value = "";
                 }}
               />
@@ -414,7 +426,6 @@ const AddPlayPage = () => {
                         className="object-cover"
                       />
 
-                      {/* Remove Button */}
                       <Button
                         type="button"
                         size="icon"
@@ -563,6 +574,78 @@ const AddPlayPage = () => {
                       variant="destructive"
                       size="icon"
                       onClick={() => removeTrophy(index)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </Field>
+
+            {/* Festivals */}
+            <Field className="md:col-span-6 space-y-3">
+              <div className="flex items-center justify-between">
+                <FieldLabel>Festivals</FieldLabel>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    appendFestival({
+                      title: "",
+                      location: "",
+                    })
+                  }
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+
+              {festivalFields.map((field, index) => (
+                <div
+                  key={field.id}
+                  className="grid grid-cols-1 md:grid-cols-12 gap-3"
+                >
+                  <div className="md:col-span-5">
+                    <Controller
+                      control={form.control}
+                      name={`festivals.${index}.title`}
+                      render={({ field, fieldState }) => (
+                        <>
+                          <Input {...field} placeholder="Festival name" />
+
+                          {fieldState.error && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </>
+                      )}
+                    />
+                  </div>
+
+                  <div className="md:col-span-6">
+                    <Controller
+                      control={form.control}
+                      name={`festivals.${index}.location`}
+                      render={({ field, fieldState }) => (
+                        <>
+                          <Input {...field} placeholder="Location (optional)" />
+
+                          {fieldState.error && (
+                            <FieldError errors={[fieldState.error]} />
+                          )}
+                        </>
+                      )}
+                    />
+                  </div>
+
+                  <div className="md:col-span-1">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => removeFestival(index)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

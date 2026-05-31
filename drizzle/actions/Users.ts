@@ -5,7 +5,10 @@ import {
   getUserProfile,
   updateUserProfile as updateUserProfileService,
   markUserProfileComplete,
+  deleteUser,
 } from "@/services/Users";
+import { requireAdmin } from "@/lib/auth/admin";
+import { revalidatePath } from "next/cache";
 import z from "zod";
 
 export const updateUserProfile = async (
@@ -24,3 +27,20 @@ export const updateUserProfile = async (
     return { error: true, message: "Failed to update profile" };
   }
 };
+
+export async function deleteUserAction(
+  userId: string,
+): Promise<{ error: boolean; message?: string }> {
+  try {
+    await requireAdmin();
+    await deleteUser(userId);
+    revalidatePath("/actors");
+    return { error: false, message: "User deleted" };
+  } catch (e) {
+    console.log(e);
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to delete user",
+    };
+  }
+}

@@ -25,16 +25,17 @@ function HeroSection() {
       tl.fromTo(
         imageWrapperRef.current,
         { opacity: 0 },
-        { opacity: 1, duration: 0.5, ease: "power2.inOut" },
+        { opacity: 1, duration: 0.1, ease: "power2.inOut" },
       )
         .fromTo(
           imageWrapperRef.current,
           { clipPath: "inset(45% 45% 45% 45% round 32px)", opacity: 1 },
           {
             clipPath: "inset(0% 0% 0% 0% round 0px)",
-            duration: 1,
+            duration: 0.8,
             ease: "power3.inOut",
           },
+          "=",
         )
         .fromTo(
           buttonRef.current,

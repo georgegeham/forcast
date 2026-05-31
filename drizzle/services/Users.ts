@@ -1,10 +1,16 @@
 import db from "../db";
-import { userProfile } from "../schema";
+import { userProfile, play } from "../schema";
 import { nanoid } from "nanoid";
 import { eq } from "drizzle-orm";
 import { user } from "../schemas/auth-schema";
 import { ProfileSchema } from "../../lib/schemas/Schemas";
 import z from "zod";
+
+export async function getUsers() {
+  return await db.query.user.findMany({
+    with: { profile: true },
+  });
+}
 
 export const getUserProfile = async (userId: string) => {
   try {
@@ -65,3 +71,46 @@ export const markUserProfileComplete = async (userId: string) => {
     throw e;
   }
 };
+
+export async function deleteUser(userId: string) {
+  await db.delete(user).where(eq(user.id, userId));
+}
+
+export async function getActorDetails(userId: string) {
+  const actor = await db.query.user.findFirst({
+    where: eq(user.id, userId),
+    with: {
+      profile: {
+        with: {
+          interviewer: true,
+          plays: {
+            with: {
+              play: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!actor) return null;
+
+  const joinedPlays = actor.profile?.plays.map((p) => p.play) ?? [];
+
+  const writtenPlays = await db
+    .select()
+    .from(play)
+    .where(eq(play.writer_Id, userId));
+
+  const directedPlays = await db
+    .select()
+    .from(play)
+    .where(eq(play.director_Id, userId));
+
+  return {
+    ...actor,
+    profile: actor.profile ?? null,
+    joinedPlays,
+    writtenPlays,
+    directedPlays,
+  };
+}

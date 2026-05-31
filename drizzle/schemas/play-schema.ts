@@ -4,6 +4,7 @@ import {
   primaryKey,
   date,
   timestamp,
+  index,
 } from "drizzle-orm/pg-core";
 import { userProfile } from "./user-profile-schema";
 import { relations } from "drizzle-orm";
@@ -37,44 +38,73 @@ export const play = pgTable("play", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const playImage = pgTable("play_image", {
-  id: text("id").primaryKey(),
+export const playImage = pgTable(
+  "play_image",
+  {
+    id: text("id").primaryKey(),
 
-  playId: text("play_id")
-    .notNull()
-    .references(() => play.id, {
-      onDelete: "cascade",
-    }),
+    playId: text("play_id")
+      .notNull()
+      .references(() => play.id, {
+        onDelete: "cascade",
+      }),
 
-  imageUrl: text("image_url").notNull(),
+    imageUrl: text("image_url").notNull(),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-export const playVideo = pgTable("play_video", {
-  id: text("id").primaryKey(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("play_image_play_id_idx").on(table.playId)],
+);
+export const playVideo = pgTable(
+  "play_video",
+  {
+    id: text("id").primaryKey(),
 
-  playId: text("play_id")
-    .notNull()
-    .references(() => play.id, {
-      onDelete: "cascade",
-    }),
+    playId: text("play_id")
+      .notNull()
+      .references(() => play.id, {
+        onDelete: "cascade",
+      }),
 
-  url: text("url").notNull(),
-});
+    url: text("url").notNull(),
+  },
+  (table) => [index("play_video_play_id_idx").on(table.playId)],
+);
 
-export const playTrophy = pgTable("play_trophy", {
-  id: text("id").primaryKey(),
+export const playTrophy = pgTable(
+  "play_trophy",
+  {
+    id: text("id").primaryKey(),
 
-  playId: text("play_id")
-    .notNull()
-    .references(() => play.id, {
-      onDelete: "cascade",
-    }),
+    playId: text("play_id")
+      .notNull()
+      .references(() => play.id, {
+        onDelete: "cascade",
+      }),
 
-  title: text("title").notNull(),
+    title: text("title").notNull(),
 
-  description: text("description"),
-});
+    description: text("description"),
+  },
+  (table) => [index("play_trophy_play_id_idx").on(table.playId)],
+);
+
+export const playFestival = pgTable(
+  "play_festival",
+  {
+    id: text("id").primaryKey(),
+
+    playId: text("play_id")
+      .notNull()
+      .references(() => play.id, {
+        onDelete: "cascade",
+      }),
+
+    title: text("name").notNull(),
+    location: text("location"),
+  },
+  (table) => [index("play_festival_play_id_idx").on(table.playId)],
+);
 
 export const userProfilePlay = pgTable(
   "user_profile_play",
@@ -95,28 +125,33 @@ export const userProfilePlay = pgTable(
     primaryKey({
       columns: [table.userProfileId, table.playId],
     }),
+    index("user_profile_play_play_id_idx").on(table.playId),
   ],
 );
 
-export const playComment = pgTable("play_comment", {
-  id: text("id").primaryKey(),
+export const playComment = pgTable(
+  "play_comment",
+  {
+    id: text("id").primaryKey(),
 
-  playId: text("play_id")
-    .notNull()
-    .references(() => play.id, {
-      onDelete: "cascade",
-    }),
+    playId: text("play_id")
+      .notNull()
+      .references(() => play.id, {
+        onDelete: "cascade",
+      }),
 
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, {
-      onDelete: "cascade",
-    }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+      }),
 
-  content: text("content").notNull(),
+    content: text("content").notNull(),
 
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("play_comment_play_id_idx").on(table.playId)],
+);
 
 export const playRelations = relations(play, ({ many }) => ({
   users: many(userProfilePlay),
@@ -126,6 +161,8 @@ export const playRelations = relations(play, ({ many }) => ({
   videos: many(playVideo),
 
   trophies: many(playTrophy),
+
+  festivals: many(playFestival),
 
   comments: many(playComment),
 }));
@@ -173,5 +210,12 @@ export const playCommentRelations = relations(playComment, ({ one }) => ({
   user: one(user, {
     fields: [playComment.userId],
     references: [user.id],
+  }),
+}));
+
+export const playFestivalRelations = relations(playFestival, ({ one }) => ({
+  play: one(play, {
+    fields: [playFestival.playId],
+    references: [play.id],
   }),
 }));

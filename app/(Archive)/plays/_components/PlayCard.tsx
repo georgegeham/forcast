@@ -1,3 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 import {
   Card,
   CardHeader,
@@ -5,51 +11,129 @@ import {
   CardFooter,
   CardContent,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Play } from "@/drizzle/Types/types";
-import { Theater } from "lucide-react";
-import Image from "next/image";
+import { Pencil, Theater, Trash2 } from "lucide-react";
+import { authClient } from "@/lib/auth/client_auth";
+import { deletePlayAction } from "@/drizzle/actions/Plays";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const PlayCard = ({ play }: { play: Play }) => {
+  const router = useRouter();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    authClient.getSession().then((session) => {
+      const user = session?.data?.user;
+      setUserRole((user as { role?: string })?.role ?? null);
+    });
+  }, []);
+
   return (
-    <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group overflow-hidden pt-0">
-      {/* Thumbnail */}
-      <div className="relative w-full h-44 bg-muted overflow-hidden ">
-        {play.thumbnail ? (
-          <Image
-            src={play.thumbnail}
-            alt={play.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <Theater className="w-10 h-10 text-muted-foreground" />
-          </div>
-        )}
-      </div>
+    <Card className="h-full hover:shadow-md transition-shadow cursoe-pointer group overflow-hidden pt-0 relative">
+      <Link href={`/plays/${play.id}`} className="block">
+        <div className="relative w-full h-44 bg-muted overflow-hidden">
+          {play.thumbnail ? (
+            <Image
+              src={play.thumbnail}
+              alt={play.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <Theater className="w-10 h-10 text-muted-foreground" />
+            </div>
+          )}
+        </div>
 
-      <CardHeader>
-        <CardTitle className="text-base line-clamp-1 uppercase">{play.name}</CardTitle>
-      </CardHeader>
-      <CardContent className=" space-y-2 grid grid-rows-[auto_auto_1fr] grid-cols-2">
-        {play.writer && (
-          <p className="text-sm line-clamp-1">Writer: {play.writer}</p>
-        )}
+        <CardHeader>
+          <CardTitle className="text-base line-clamp-1 uppercase pt-2">
+            {play.name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 grid grid-rows-[auto_auto_1fr] grid-cols-2 p-4 pt-1">
+          {play.writer && (
+            <p className="text-sm line-clamp-1">Writer: {play.writer}</p>
+          )}
+          {play.director && (
+            <p className="text-sm line-clamp-1">Director: {play.director}</p>
+          )}
+          {play.playDate && (
+            <p className="text-xs text-muted-foreground">
+              {new Date(play.playDate).toLocaleDateString()}
+            </p>
+          )}
+        </CardContent>
 
-        {play.director && (
-          <p className="text-sm line-clamp-1">Director: {play.director}</p>
-        )}
+        <CardFooter className="text-xs text-muted-foreground">
+          View details →
+        </CardFooter>
+      </Link>
 
-        {play.playDate && (
-          <p className="text-xs text-muted-foreground">
-            {new Date(play.playDate).toLocaleDateString()}
-          </p>
-        )}
-      </CardContent>
-
-      <CardFooter className="text-xs text-muted-foreground">
-        View details →
-      </CardFooter>
+      {userRole === "admin" && (
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            className="bg-stone-900/80 hover:bg-stone-800 text-stone-400"
+            onClick={() => router.push(`/plays/${play.id}`)}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="bg-stone-900/80 hover:bg-stone-800 text-red-400 hover:text-red-300"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogMedia>
+                  <Trash2 className="text-red-400" />
+                </AlertDialogMedia>
+                <AlertDialogTitle>Delete Play</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete &ldquo;{play.name}&rdquo;?
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={async () => {
+                    const result = await deletePlayAction(play.id);
+                    if (result?.error) {
+                      toast.error(result.message ?? "Failed to delete");
+                    } else {
+                      toast.success("Play deleted");
+                    }
+                  }}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
     </Card>
   );
 };

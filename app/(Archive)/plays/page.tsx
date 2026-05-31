@@ -28,9 +28,7 @@ const PlaysPage = async () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
           {plays.map((play) => (
-            <Link key={play.id} href={`/plays/${play.id}`}>
-              <PlayCard play={play} />
-            </Link>
+            <PlayCard key={play.id} play={play} />
           ))}
         </div>
       )}

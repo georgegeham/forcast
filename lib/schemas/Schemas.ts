@@ -46,7 +46,7 @@ export const createPlaySchema = z.object({
   trophies: z
     .array(
       z.object({
-        title: z.string().min(1),
+        title: z.string().min(1, "Title is required"),
         description: z.string().optional(),
       }),
     )
@@ -55,4 +55,13 @@ export const createPlaySchema = z.object({
   thumbnail: z.instanceof(File).optional(),
 
   images: z.array(z.instanceof(File)).optional(),
+
+  festivals: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        location: z.string(),
+      }),
+    )
+    .optional(),
 });
