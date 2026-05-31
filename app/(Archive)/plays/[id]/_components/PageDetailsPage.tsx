@@ -39,7 +39,7 @@ import { authClient } from "@/lib/auth/client_auth";
 import { Textarea } from "@/components/ui/textarea";
 import { SectionHeading, Lightbox } from "./UI";
 import { PlayActions } from "./Playactions";
-import { addPlayComment, deletePlayAction } from "@/drizzle/actions/Plays";
+import { addPlayComment } from "@/drizzle/actions/Plays";
 import { toast } from "sonner";
 import {
   AddPhotosModal,
@@ -272,7 +272,10 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
                       actor?.user?.name ??
                       actor?.user?.email?.split("@")[0] ??
                       "Actor";
-                    const image = actor?.user?.image;
+                    const image = actor?.user?.image
+                      ? // eslint-disable-next-line react-hooks/purity
+                        `${actor.user.image}?v=${Date.now()}`
+                      : undefined;
                     const isWriter = userId && play.writer_Id === userId;
                     const isDirector = userId && play.director_Id === userId;
                     return (
