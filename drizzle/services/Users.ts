@@ -13,7 +13,6 @@ export async function getUsers() {
   });
 }
 
-
 export const getUserProfile = async (userId: string) => {
   try {
     const profile = await db.query.user.findFirst({
@@ -51,7 +50,24 @@ export const updateUserProfile = async (
   data: Omit<z.infer<typeof ProfileSchema>, "profileImage">,
 ) => {
   try {
-    const { bio, gender, birthday, phone, interviewer } = data;
+    const { bio, gender, birthday, phone, interviewer, name, email } = data;
+
+    const currentUser = await db.query.user.findFirst({
+      where: eq(user.id, userId),
+    });
+
+    if (currentUser) {
+      if (name !== currentUser.name || email !== currentUser.email) {
+        await db
+          .update(user)
+          .set({
+            ...(name !== currentUser.name && { name }),
+            ...(email !== currentUser.email && { email }),
+          })
+          .where(eq(user.id, userId));
+      }
+    }
+
     await db
       .update(userProfile)
       .set({ bio, gender, birthday, phone, interviewer })

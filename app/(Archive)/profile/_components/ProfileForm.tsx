@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 import { uploadAvatar } from "@/lib/supabase/actions/upload-avatar";
 import { toast } from "sonner";
 import { ProfileSchema } from "@/lib/schemas/Schemas";
-import { updateUserProfile } from "@/drizzle/actions/Users";
+import { createUserProfile, updateUserProfile } from "@/drizzle/actions/Users";
 import { useRouter } from "next/navigation";
 
 type ProfileSchema = z.infer<typeof ProfileSchema>;
@@ -110,7 +110,12 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
 
   const onSubmit = async (data: ProfileSchema) => {
     try {
-      const result = await updateUserProfile(user.id, data);
+      let result;
+      if (!user.completedProfile) {
+        result = await createUserProfile(user.id, data);
+      } else {
+        result = await updateUserProfile(user.id, data);
+      }
       if (result.error) {
         throw new Error(result.message || "Failed to update profile");
       }

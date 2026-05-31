@@ -6,11 +6,29 @@ import {
   updateUserProfile as updateUserProfileService,
   markUserProfileComplete,
   deleteUser,
+  CreateUser,
 } from "@/services/Users";
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
 import z from "zod";
 
+export const createUserProfile = async (
+  userId: string,
+  data: z.infer<typeof ProfileSchema>,
+): Promise<{ error: boolean; message?: string }> => {
+  try {
+    await CreateUser(userId);
+    await updateUserProfileService(userId, data);
+    const user = await getUserProfile(userId);
+    if (!user?.completedProfile) {
+      await markUserProfileComplete(userId);
+    }
+    return { error: false, message: "Profile created successfully" };
+  } catch (e) {
+    console.log(e);
+    return { error: true, message: "Failed to create profile" };
+  }
+};
 export const updateUserProfile = async (
   userId: string,
   data: Omit<z.infer<typeof ProfileSchema>, "profileImage">,

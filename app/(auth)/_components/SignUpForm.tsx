@@ -15,6 +15,7 @@ import { LoadingSwap } from "@/components/ui/loading-swap";
 import { signUpSchema } from "@/lib/schemas/Schemas";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth/client_auth";
+import { CreateUser } from "@/drizzle/services/Users";
 
 type SignUpSchema = z.infer<typeof signUpSchema>;
 const SignUpForm = () => {
