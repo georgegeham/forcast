@@ -31,10 +31,15 @@ export const createUserProfile = async (
 };
 export const updateUserProfile = async (
   userId: string,
-  data: Omit<z.infer<typeof ProfileSchema>, "profileImage">,
+  data: z.infer<typeof ProfileSchema>,
 ): Promise<{ error: boolean; message?: string }> => {
   try {
-    await updateUserProfileService(userId, data);
+    const hasProfile = await getUserProfile(userId);
+    if (!hasProfile) {
+      await createUserProfile(userId, data);
+    } else {
+      await updateUserProfileService(userId, data);
+    }
     const user = await getUserProfile(userId);
     if (!user?.completedProfile) {
       await markUserProfileComplete(userId);
