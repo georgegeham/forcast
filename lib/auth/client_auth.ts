@@ -1,10 +1,7 @@
 import { createAuthClient } from "better-auth/react";
 import { inferAdditionalFields } from "better-auth/client/plugins";
 import { auth } from "./auth";
-const url =
-  process.env.NODE_ENV === "development"
-    ? process.env.BETTER_AUTH_URL_DEV!
-    : process.env.BETTER_AUTH_URL_PRODUCTION!;
+const url = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 export const authClient = createAuthClient({
   plugins: [inferAdditionalFields<typeof auth>()],
   baseURL: url,

@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import db from "@/drizzle/db";
+
 export const auth = betterAuth({
   // user model
+  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   user: {
     additionalFields: {
       completedProfile: {
