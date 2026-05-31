@@ -273,8 +273,7 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
                       actor?.user?.email?.split("@")[0] ??
                       "Actor";
                     const image = actor?.user?.image
-                      ? // eslint-disable-next-line react-hooks/purity
-                        `${actor.user.image}?v=${Date.now()}`
+                      ? `${actor.user.image}?v=${actor.user.updatedAt?.getTime() ?? Date.now()}`
                       : undefined;
                     const isWriter = userId && play.writer_Id === userId;
                     const isDirector = userId && play.director_Id === userId;
