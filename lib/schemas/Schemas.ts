@@ -65,3 +65,39 @@ export const createPlaySchema = z.object({
     )
     .optional(),
 });
+
+export const updatePlaySchema = z.object({
+  name: z.string().min(1, "Play name is required").max(100),
+  bio: z.string().optional(),
+  writer: z.string().min(1, "Writer is required"),
+  director: z.string().min(1, "Director is required"),
+  playDate: z.string().min(1, "Play date is required"),
+  photosBucket: z
+    .string()
+    .url("Must be a valid URL")
+    .optional()
+    .or(z.literal("")),
+  videoLinks: z
+    .array(
+      z.object({
+        url: z.string().url(),
+      }),
+    )
+    .optional(),
+  trophies: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        description: z.string().optional(),
+      }),
+    )
+    .optional(),
+  festivals: z
+    .array(
+      z.object({
+        title: z.string().min(1, "Title is required"),
+        location: z.string(),
+      }),
+    )
+    .optional(),
+});

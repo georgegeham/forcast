@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import {
   MessageSquare,
   Send,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import type {
   Festival,
@@ -56,6 +58,7 @@ import {
 type ModalType = "photos" | "video" | "trophy" | "festival" | null;
 
 export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
+  const router = useRouter();
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
@@ -229,6 +232,13 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
           </div>
           <div className="flex items-center gap-3">
             <PlayActions play={play} />
+            <button
+              onClick={() => router.push(`/plays/${play.id}/edit`)}
+              className="text-stone-500 hover:text-amber-400 transition-colors"
+              title="Edit play"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
             {userRole === "admin" && (
               <button
                 onClick={async () => {

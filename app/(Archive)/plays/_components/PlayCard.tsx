@@ -83,16 +83,16 @@ const PlayCard = ({ play }: { play: Play }) => {
         </CardFooter>
       </Link>
 
-      {userRole === "admin" && (
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            className="bg-stone-900/80 hover:bg-stone-800 text-stone-400"
-            onClick={() => router.push(`/plays/${play.id}`)}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
+      <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <Button
+          variant="ghost"
+          size="icon-xs"
+          className="bg-stone-900/80 hover:bg-stone-800 text-stone-400"
+          onClick={() => router.push(`/plays/${play.id}/edit`)}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
+        {userRole === "admin" && (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -132,8 +132,8 @@ const PlayCard = ({ play }: { play: Play }) => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
-      )}
+        )}
+      </div>
     </Card>
   );
 };

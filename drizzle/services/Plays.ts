@@ -107,6 +107,27 @@ export async function getPlayDetails(playId: string) {
   return result;
 }
 
+export async function updatePlay(id: string, data: Partial<typeof play.$inferInsert>) {
+  const [updated] = await db
+    .update(play)
+    .set(data)
+    .where(eq(play.id, id))
+    .returning();
+  return updated;
+}
+
+export async function deletePlayVideos(playId: string) {
+  await db.delete(playVideo).where(eq(playVideo.playId, playId));
+}
+
+export async function deletePlayTrophies(playId: string) {
+  await db.delete(playTrophy).where(eq(playTrophy.playId, playId));
+}
+
+export async function deletePlayFestivals(playId: string) {
+  await db.delete(playFestival).where(eq(playFestival.playId, playId));
+}
+
 export async function createPlayComment({
   playId,
   userId,

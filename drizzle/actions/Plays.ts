@@ -12,6 +12,10 @@ import {
   createPlayFestival,
   createPlayComment,
   deletePlay as deletePlayService,
+  updatePlay as updatePlayService,
+  deletePlayVideos,
+  deletePlayTrophies,
+  deletePlayFestivals,
 } from "@/drizzle/services/Plays";
 import { uploadPlayImage } from "@/lib/supabase/actions/upload-play-image";
 import { revalidatePath } from "next/cache";
@@ -75,6 +79,72 @@ export async function createPlayAction(_: unknown, formData: FormData) {
     return {
       error: true,
       message: e instanceof Error ? e.message : "Failed to create play",
+    };
+  }
+}
+
+export async function updatePlayAction(playId: string, formData: FormData) {
+  try {
+    const thumbnailFile = formData.get("thumbnail") as File;
+    const hasNewThumbnail = thumbnailFile?.size > 0;
+
+    let thumbnailUrl = formData.get("existingThumbnail") as string;
+
+    if (hasNewThumbnail) {
+      thumbnailUrl = await uploadPlayImage(
+        thumbnailFile,
+        `plays/${playId}/thumbnail`,
+      );
+    }
+
+    await updatePlayService(playId, {
+      name: formData.get("name") as string,
+      bio: formData.get("bio") as string,
+      writer: formData.get("writer") as string,
+      director: formData.get("director") as string,
+      playDate: formData.get("playDate") as string,
+      photosBucket: formData.get("photosBucket") as string,
+      thumbnail: thumbnailUrl,
+    });
+
+    const imageFiles = formData.getAll("images") as File[];
+    const imageUrls: string[] = [];
+    for (const image of imageFiles) {
+      if (!image.size) continue;
+      const url = await uploadPlayImage(image, `plays/${playId}/gallery`);
+      imageUrls.push(url);
+    }
+    if (imageUrls.length) {
+      await createPlayImages(playId, imageUrls);
+    }
+
+    const videos = JSON.parse((formData.get("videoLinks") as string) || "[]");
+    const trophies = JSON.parse((formData.get("trophies") as string) || "[]");
+    const festivals = JSON.parse((formData.get("festivals") as string) || "[]");
+
+    await Promise.all([
+      deletePlayVideos(playId),
+      deletePlayTrophies(playId),
+      deletePlayFestivals(playId),
+    ]);
+
+    await Promise.all([
+      createPlayVideos(playId, videos),
+      createPlayTrophies(playId, trophies),
+      createPlayFestival(playId, festivals),
+    ]);
+
+    revalidatePath(`/plays/${playId}`);
+    revalidatePath("/plays");
+
+    return {
+      error: false,
+      message: "Play updated successfully",
+    };
+  } catch (e) {
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to update play",
     };
   }
 }
