@@ -147,7 +147,7 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
               <div>
                 <p className="text-sm font-medium">Upload a profile picture</p>
                 <p className="text-sm text-muted-foreground">
-                  JPG, PNG or WEBP · Max 10MB
+                  JPG, PNG or WEBP · Max 20MB
                 </p>
               </div>
 
