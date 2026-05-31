@@ -49,7 +49,10 @@ export async function uploadAvatar(
       .from("Profile Pics")
       .getPublicUrl(path);
     await addUserPic(user.id, data.publicUrl);
+    console.log("Avatar uploaded:", data.publicUrl);
     revalidatePath(callbackURL);
+    revalidatePath("/actors");
+    revalidatePath("/home");
     return { error: false, message: data.publicUrl };
   } catch (error) {
     console.error("Error uploading avatar:", error);

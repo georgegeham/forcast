@@ -8,6 +8,9 @@ import {
   joinCastAction,
   claimDirectorAction,
   claimWriterAction,
+  unjoinCastAction,
+  unclaimDirectorAction,
+  unclaimWriterAction,
 } from "@/drizzle/actions/Plays";
 import { authClient } from "@/lib/auth/client_auth";
 import { PlayDetails } from "@/drizzle/Types/types";
@@ -61,6 +64,28 @@ export function PlayActions({ play }: { play: PlayDetails }) {
     }
   }
 
+  async function handleUnclaim(
+    type: "cast" | "director" | "writer",
+    action: () => Promise<{ error: boolean; message?: string }>,
+  ) {
+    if (!userId || !done.has(type)) return;
+    setLoading(type);
+    try {
+      const result = await action();
+      if (result.error) throw new Error(result.message);
+      toast.success(result.message || "Action performed successfully");
+      setDone((prev) => {
+        const next = new Set(prev);
+        next.delete(type);
+        return next;
+      });
+    } catch (e) {
+      if (e instanceof Error) toast.error(e.message || "Failed to perform action");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   if (!userId) return null;
 
   // Hidden entirely when another user already holds the role
@@ -69,61 +94,73 @@ export function PlayActions({ play }: { play: PlayDetails }) {
 
   return (
     <div className="flex flex-wrap gap-3">
-      {/* Join Cast */}
+      {/* Join / Leave Cast */}
       <button
         className={`${btn} ${
           done.has("cast")
-            ? "bg-amber-400/10 border-amber-400/40 text-amber-400"
+            ? "bg-amber-400/10 border-amber-400/40 text-amber-400 hover:border-red-400/50 hover:text-red-400"
             : "bg-stone-900 border-stone-700 text-stone-300 hover:border-amber-400/50 hover:text-amber-400"
         }`}
-        disabled={!!loading || done.has("cast")}
-        onClick={() => handle("cast", () => joinCastAction({ playId: play!.id, userId }))}
+        disabled={!!loading}
+        onClick={() =>
+          done.has("cast")
+            ? handleUnclaim("cast", () => unjoinCastAction({ playId: play!.id, userId }))
+            : handle("cast", () => joinCastAction({ playId: play!.id, userId }))
+        }
       >
         {loading === "cast" ? (
           <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
         ) : (
           <UserPlus className="w-4 h-4" />
         )}
-        {done.has("cast") ? "Joined Cast" : "Join the Cast"}
+        {done.has("cast") ? "Leave Cast" : "Join the Cast"}
       </button>
 
-      {/* Claim Director — hidden when taken by someone else */}
-      {!directorTaken && (
+      {/* Claim / Unclaim Director — hidden when taken by someone else */}
+      {(!directorTaken || done.has("director")) && (
         <button
           className={`${btn} ${
             done.has("director")
-              ? "bg-amber-400/10 border-amber-400/40 text-amber-400"
+              ? "bg-amber-400/10 border-amber-400/40 text-amber-400 hover:border-red-400/50 hover:text-red-400"
               : "bg-stone-900 border-stone-700 text-stone-300 hover:border-amber-400/50 hover:text-amber-400"
           }`}
-          disabled={!!loading || done.has("director")}
-          onClick={() => handle("director", () => claimDirectorAction({ playId: play!.id, userId }))}
+          disabled={!!loading}
+          onClick={() =>
+            done.has("director")
+              ? handleUnclaim("director", () => unclaimDirectorAction({ playId: play!.id, userId }))
+              : handle("director", () => claimDirectorAction({ playId: play!.id, userId }))
+          }
         >
           {loading === "director" ? (
             <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
           ) : (
             <Clapperboard className="w-4 h-4" />
           )}
-          {done.has("director") ? "Directing Claimed" : "Claim Directing"}
+          {done.has("director") ? "Unclaim Directing" : "Claim Directing"}
         </button>
       )}
 
-      {/* Claim Writer — hidden when taken by someone else */}
-      {!writerTaken && (
+      {/* Claim / Unclaim Writer — hidden when taken by someone else */}
+      {(!writerTaken || done.has("writer")) && (
         <button
           className={`${btn} ${
             done.has("writer")
-              ? "bg-amber-400/10 border-amber-400/40 text-amber-400"
+              ? "bg-amber-400/10 border-amber-400/40 text-amber-400 hover:border-red-400/50 hover:text-red-400"
               : "bg-stone-900 border-stone-700 text-stone-300 hover:border-amber-400/50 hover:text-amber-400"
           }`}
-          disabled={!!loading || done.has("writer")}
-          onClick={() => handle("writer", () => claimWriterAction({ playId: play!.id, userId }))}
+          disabled={!!loading}
+          onClick={() =>
+            done.has("writer")
+              ? handleUnclaim("writer", () => unclaimWriterAction({ playId: play!.id, userId }))
+              : handle("writer", () => claimWriterAction({ playId: play!.id, userId }))
+          }
         >
           {loading === "writer" ? (
             <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
           ) : (
             <PenLine className="w-4 h-4" />
           )}
-          {done.has("writer") ? "Writing Claimed" : "Claim Writing"}
+          {done.has("writer") ? "Unclaim Writing" : "Claim Writing"}
         </button>
       )}
     </div>

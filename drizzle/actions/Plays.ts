@@ -9,6 +9,9 @@ import {
   joinCast as joinCastService,
   claimDirector as claimDirectorService,
   claimWriter as claimWriterService,
+  unjoinCast as unjoinCastService,
+  unclaimDirector as unclaimDirectorService,
+  unclaimWriter as unclaimWriterService,
   createPlayFestival,
   createPlayComment,
   deletePlay as deletePlayService,
@@ -211,6 +214,72 @@ export async function claimWriterAction({
     return {
       error: true,
       message: e instanceof Error ? e.message : "Failed to claim writer",
+    };
+  }
+}
+
+export async function unjoinCastAction({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await unjoinCastService({ playId, userId });
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Left cast successfully",
+    };
+  } catch (e) {
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to leave cast",
+    };
+  }
+}
+
+export async function unclaimDirectorAction({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await unclaimDirectorService({ playId, userId });
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Unclaimed director successfully",
+    };
+  } catch (e) {
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to unclaim director",
+    };
+  }
+}
+
+export async function unclaimWriterAction({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}): Promise<{ error: boolean; message?: string }> {
+  try {
+    await unclaimWriterService({ playId, userId });
+    revalidatePath(`/plays/${playId}`);
+    return {
+      error: false,
+      message: "Unclaimed writer successfully",
+    };
+  } catch (e) {
+    return {
+      error: true,
+      message: e instanceof Error ? e.message : "Failed to unclaim writer",
     };
   }
 }

@@ -14,12 +14,18 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { SectionHeading } from "@/app/(Archive)/plays/[id]/_components/UI";
+import { useState } from "react";
 
 type ActorData = Awaited<
   ReturnType<typeof import("@/drizzle/services/Users").getActorDetails>
 >;
 
 export default function ActorDetailsPage({ actor }: { actor: ActorData }) {
+  const [avatarSrc, setAvatarSrc] = useState(() => {
+    if (actor?.image) {
+      return `${actor.image}?v=${actor.updatedAt?.getTime() ?? Date.now()}`;
+    }
+  });
   if (!actor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#0c0a09]">
@@ -27,7 +33,6 @@ export default function ActorDetailsPage({ actor }: { actor: ActorData }) {
       </div>
     );
   }
-
   const { profile } = actor;
 
   return (
@@ -38,10 +43,10 @@ export default function ActorDetailsPage({ actor }: { actor: ActorData }) {
           <div className="absolute inset-0 flex justify-center">
             <div className="relative w-[92%] h-full">
               <Image
-                src={actor.image}
+                src={avatarSrc ?? actor.image}
                 alt={actor.name}
                 fill
-                className="object-cover"
+                className="object-contain object-start aspect-auto"
                 priority
               />
             </div>

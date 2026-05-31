@@ -38,11 +38,15 @@ const UserAvatar = ({ user }: { user: CurrentUser | null }) => {
   };
   if (!user) return null;
 
+  const avatarSrc = user.image
+    ? `${user.image}?v=${user.updatedAt?.getTime() ?? Date.now()}`
+    : "";
+
   return (
     <Popover>
       <PopoverTrigger className="cursor-pointer" asChild>
         <Avatar>
-          <AvatarImage src={user?.image || ""} alt="User Avatar" />
+          <AvatarImage src={avatarSrc} alt="User Avatar" />
           <AvatarFallback>{user?.name?.charAt(0) || ""}</AvatarFallback>
         </Avatar>
       </PopoverTrigger>
@@ -50,7 +54,7 @@ const UserAvatar = ({ user }: { user: CurrentUser | null }) => {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
             <Avatar>
-              <AvatarImage src={user?.image || ""} alt="User Avatar" />
+              <AvatarImage src={avatarSrc} alt="User Avatar" />
               <AvatarFallback>{user?.name?.charAt(0) || ""}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-1">

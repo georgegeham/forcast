@@ -8,7 +8,7 @@ import {
   playFestival,
   playComment,
 } from "@/drizzle/schemas/play-schema";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getUserProfile } from "./Users";
 
@@ -204,4 +204,51 @@ export async function claimWriter({
     console.log(e);
     throw e;
   }
+}
+
+export async function unjoinCast({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}) {
+  const profile = await db.query.userProfile.findFirst({
+    where: (p, { eq }) => eq(p.userId, userId),
+  });
+  if (!profile) throw new Error("User profile not found");
+  await db
+    .delete(userProfilePlay)
+    .where(
+      and(
+        eq(userProfilePlay.userProfileId, profile.id),
+        eq(userProfilePlay.playId, playId),
+      ),
+    );
+}
+
+export async function unclaimDirector({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}) {
+  await db
+    .update(play)
+    .set({ director_Id: null, director: null })
+    .where(and(eq(play.id, playId), eq(play.director_Id, userId)));
+}
+
+export async function unclaimWriter({
+  playId,
+  userId,
+}: {
+  playId: string;
+  userId: string;
+}) {
+  await db
+    .update(play)
+    .set({ writer_Id: null, writer: null })
+    .where(and(eq(play.id, playId), eq(play.writer_Id, userId)));
 }

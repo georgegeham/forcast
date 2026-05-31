@@ -34,7 +34,11 @@ const ActorCard = ({ user }: { user: UserWithProfile }) => {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
-
+  const [avatarSrc, setAvatarSrc] = useState(() => {
+    if (user.image) {
+      return `${user.image}?v=${user.updatedAt?.getTime() ?? Date.now()}`;
+    }
+  });
   useEffect(() => {
     authClient.getSession().then((session) => {
       const u = session?.data?.user;
@@ -51,10 +55,10 @@ const ActorCard = ({ user }: { user: UserWithProfile }) => {
             <div className="relative w-full h-44 bg-muted overflow-hidden">
               {user.image ? (
                 <Image
-                  src={user.image}
+                  src={avatarSrc ?? user.image}
                   alt={user.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover object-start group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">

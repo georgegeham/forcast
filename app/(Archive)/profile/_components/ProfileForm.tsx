@@ -92,6 +92,7 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
         form.setValue("profileImage", result.message);
 
         toast.success("Avatar updated successfully");
+        router.refresh();
       } catch (e) {
         toast.error(
           e instanceof Error
