@@ -125,12 +125,12 @@ function HeroSection() {
           />
           <SplitText
             text="Stories preserved beyond the stage."
-            className="text-2xl italic text-center"
+            className="text-2xl italic text-center pt-2"
             delay={50}
             duration={1.1}
             ease="power3.out"
             splitType="chars"
-            from={{ opacity: 0, y: 40 }}
+            from={{ opacity: 0, y: 50 }}
             to={{ opacity: 1, y: 0 }}
             threshold={0.1}
             rootMargin="-100px"

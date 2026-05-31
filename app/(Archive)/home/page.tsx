@@ -104,7 +104,7 @@ const HomePage = async () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {recentPlays.map((p) => (
                   <Link key={p.id} href={`/plays/${p.id}`}>
                     <Card className="h-full hover:shadow-md transition-shadow group overflow-hidden pt-0">
