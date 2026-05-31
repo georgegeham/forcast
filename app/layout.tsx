@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Oswald } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import NextTopLoader from "nextjs-toploader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +36,10 @@ export default function RootLayout({
       className={`dark ${geistSans.variable} ${geistMono.variable} ${oswald.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-oswald">
-        <main>{children}</main>
+        <main>
+          <NextTopLoader showSpinner={false} />
+          {children}
+        </main>
         <Toaster />
       </body>
     </html>
