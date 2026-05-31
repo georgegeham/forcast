@@ -23,6 +23,7 @@ const oswald = Oswald({
 export const metadata: Metadata = {
   title: "Cast Handasa",
   description: "Archive for my cast",
+  themeColor: "#000000",
   icons: {
     icon: [
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
