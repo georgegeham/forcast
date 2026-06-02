@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import type { UserWithProfile } from "@/drizzle/Types/types";
 import { Pencil, Trash2, User } from "lucide-react";
-import { authClient } from "@/lib/auth/client_auth";
+import { useSession } from "@/lib/auth/hooks/useSession";
 import { deleteUserAction } from "@/drizzle/actions/Users";
 import { toast } from "sonner";
 import {
@@ -32,20 +32,14 @@ import {
 
 const ActorCard = ({ user }: { user: UserWithProfile }) => {
   const router = useRouter();
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const sessionUser = useSession();
+  const userId = sessionUser?.id ?? null;
+  const userRole = sessionUser?.role ?? null;
   const [avatarSrc, setAvatarSrc] = useState(() => {
     if (user.image) {
       return `${user.image}?v=${user.updatedAt?.getTime() ?? Date.now()}`;
     }
   });
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      const u = session?.data?.user;
-      setUserRole((u as { role?: string })?.role ?? null);
-      setUserId((u as { id?: string })?.id ?? null);
-    });
-  }, []);
 
   return (
     <Card className="h-full hover:shadow-md transition-shadow cursor-pointer group overflow-hidden pt-0 relative">
@@ -86,7 +80,9 @@ const ActorCard = ({ user }: { user: UserWithProfile }) => {
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Joined {new Date(user.createdAt).toLocaleDateString()}
+            {user.profile?.joinedSince
+              ? `Joined ${new Date(user.profile.joinedSince).toLocaleDateString()}`
+              : `Joined ${new Date(user.createdAt).toLocaleDateString()}`}
           </p>
         </CardContent>
 

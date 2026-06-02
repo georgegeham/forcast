@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -12,20 +11,15 @@ import {
   unclaimDirectorAction,
   unclaimWriterAction,
 } from "@/drizzle/actions/Plays";
-import { authClient } from "@/lib/auth/client_auth";
+import { useSession } from "@/lib/auth/hooks/useSession";
 import { PlayDetails } from "@/drizzle/Types/types";
 
 const btn =
   "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed";
 
 export function PlayActions({ play }: { play: PlayDetails }) {
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      if (session?.data?.user?.id) setUserId(session.data.user.id);
-    });
-  }, []);
+  const sessionUser = useSession();
+  const userId = sessionUser?.id ?? null;
 
   const alreadyInCast =
     !!userId && (play?.users ?? []).some((u) => u.userProfile?.user?.id === userId);

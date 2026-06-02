@@ -70,6 +70,13 @@ const UserAvatar = ({ user }: { user: CurrentUser | null }) => {
               Profile
             </Link>
           </div>
+          {user.role === "admin" && (
+            <div className="flex items-center gap-2">
+              <Link className="cursor-pointer" href="/admin/notifications">
+                Send Notification
+              </Link>
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Button
               variant="destructive"

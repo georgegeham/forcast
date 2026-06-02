@@ -13,7 +13,7 @@ import { nanoid } from "nanoid";
 import { getUserProfile } from "./Users";
 
 export async function getPlays() {
-  return await db.select().from(play);
+  return await db.select().from(play).orderBy(desc(play.playDate));
 }
 
 export async function getRecentPlays() {

@@ -67,11 +67,17 @@ export default function ActorDetailsPage({ actor }: { actor: ActorData }) {
             <CalendarDays className="w-4 h-4 text-amber-400" />
             <span>
               Joined{" "}
-              {new Date(actor.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
+              {profile?.joinedSince
+                ? new Date(profile.joinedSince).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : new Date(actor.createdAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
             </span>
           </div>
         </div>

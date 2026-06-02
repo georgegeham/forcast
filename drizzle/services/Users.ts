@@ -1,15 +1,22 @@
 import db from "../db";
 import { userProfile, play } from "../schema";
 import { nanoid } from "nanoid";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { user } from "../schemas/auth-schema";
 import { ProfileSchema } from "../../lib/schemas/Schemas";
 import z from "zod";
 
 export async function getUsers() {
   return await db.query.user.findMany({
-    with: { profile: true },
+    with: {
+      profile: {
+        with: {
+          plays: true,
+        },
+      },
+    },
     where: (p, { eq }) => eq(p.completedProfile, true),
+    orderBy: (user, { desc }) => [desc(user.createdAt)],
   });
 }
 
@@ -50,7 +57,7 @@ export const updateUserProfile = async (
   data: Omit<z.infer<typeof ProfileSchema>, "profileImage">,
 ) => {
   try {
-    const { bio, gender, birthday, phone, interviewer, name, email } = data;
+    const { bio, gender, birthday, phone, joinedSince, interviewer, name, email } = data;
 
     const currentUser = await db.query.user.findFirst({
       where: eq(user.id, userId),
@@ -70,7 +77,7 @@ export const updateUserProfile = async (
 
     await db
       .update(userProfile)
-      .set({ bio, gender, birthday, phone, interviewer })
+      .set({ bio, gender, birthday, phone, joinedSince, interviewer })
       .where(eq(userProfile.userId, userId));
   } catch (e) {
     console.log(e);
@@ -112,17 +119,21 @@ export async function getActorDetails(userId: string) {
   });
   if (!actor) return null;
 
-  const joinedPlays = actor.profile?.plays.map((p) => p.play) ?? [];
+  const joinedPlays = (actor.profile?.plays.map((p) => p.play) ?? []).sort(
+    (a, b) => new Date(b.playDate ?? 0).getTime() - new Date(a.playDate ?? 0).getTime(),
+  );
 
   const writtenPlays = await db
     .select()
     .from(play)
-    .where(eq(play.writer_Id, userId));
+    .where(eq(play.writer_Id, userId))
+    .orderBy(desc(play.playDate));
 
   const directedPlays = await db
     .select()
     .from(play)
-    .where(eq(play.director_Id, userId));
+    .where(eq(play.director_Id, userId))
+    .orderBy(desc(play.playDate));
 
   return {
     ...actor,

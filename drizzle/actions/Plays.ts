@@ -23,6 +23,7 @@ import {
 import { uploadPlayImage } from "@/lib/supabase/actions/upload-play-image";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/admin";
+import { notifyAllActors } from "@/drizzle/services/Notifications";
 
 export async function createPlayAction(_: unknown, formData: FormData) {
   try {
@@ -73,6 +74,13 @@ export async function createPlayAction(_: unknown, formData: FormData) {
       createPlayTrophies(createdPlay.id, trophies),
       createPlayFestival(createdPlay.id, festival),
     ]);
+
+    const playName = formData.get("name") as string;
+    await notifyAllActors({
+      type: "new_play",
+      title: `New play "${playName}" added`,
+      link: `/plays/${id}`,
+    });
 
     return {
       error: false,

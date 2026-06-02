@@ -21,6 +21,8 @@ export const userProfile = pgTable("user_profile", {
 
   phone: text("phone"),
 
+  joinedSince: date("joined_since"),
+
   interviewer: text("interviewer_id").references(() => user.id, {
     onDelete: "set null",
   }),

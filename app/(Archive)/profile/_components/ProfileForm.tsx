@@ -62,6 +62,7 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
       birthday: user?.profile?.birthday || "",
       phone: user?.profile?.phone || "",
       email: user?.email || "",
+      joinedSince: user?.profile?.joinedSince || "",
       interviewer: user?.profile?.interviewer || "",
     },
   });
@@ -275,6 +276,56 @@ const ProfileForm = ({ user }: { user: CurrentUser }) => {
                         <SelectItem value="female">Female</SelectItem>
                       </SelectContent>
                     </Select>
+                    {fieldState.error && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </>
+                )}
+              />
+            </Field>
+
+            <Field className="md:col-span-2">
+              <FieldLabel htmlFor="joinedSince">Joined Since</FieldLabel>
+              <Controller
+                control={form.control}
+                name="joinedSince"
+                render={({ field, fieldState }) => (
+                  <>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground",
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(new Date(field.value), "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          captionLayout="dropdown"
+                          defaultMonth={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) => {
+                            if (!date) return;
+                            field.onChange(format(date, "yyyy-MM-dd"));
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     {fieldState.error && (
                       <FieldError errors={[fieldState.error]} />
                     )}

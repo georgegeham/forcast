@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -13,34 +12,14 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play } from "@/drizzle/Types/types";
-import { Pencil, Theater, Trash2 } from "lucide-react";
-import { authClient } from "@/lib/auth/client_auth";
-import { deletePlayAction } from "@/drizzle/actions/Plays";
-import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Pencil, Theater } from "lucide-react";
+import { useSession } from "@/lib/auth/hooks/useSession";
 import DeletePlayButton from "./DeletePlayButton";
 
 const PlayCard = ({ play }: { play: Play }) => {
   const router = useRouter();
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      const user = session?.data?.user;
-      setUserRole((user as { role?: string })?.role ?? null);
-    });
-  }, []);
+  const sessionUser = useSession();
+  const userRole = sessionUser?.role ?? null;
 
   return (
     <Card className="h-full hover:shadow-md transition-shadow cursoe-pointer group overflow-hidden pt-0 relative">

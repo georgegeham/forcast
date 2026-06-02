@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -42,6 +43,17 @@ export function getYouTubeEmbedUrl(url: string): string | null {
     }
   }
   return null;
+}
+
+export function debounce<T extends (...args: any[]) => void>(
+  fn: T,
+  delay: number,
+): T {
+  let timer: ReturnType<typeof setTimeout>;
+  return ((...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  }) as T;
 }
 
 export const addBtnClass =

@@ -8,6 +8,20 @@
       "when": 1778530835170,
       "tag": "0000_demonic_toxin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780414920691,
+      "tag": "0001_overrated_prowler",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780415404671,
+      "tag": "0002_strange_maverick",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,7 @@ export const ProfileSchema = z.object({
   gender: z.enum(["male", "female"]),
   birthday: z.string().min(1, "Birthday is required"),
   phone: z.string().min(1, "Phone number is required"),
+  joinedSince: z.string().optional(),
   email: z.email().min(1, "Email is required"),
   interviewer: z.string().optional(),
 });

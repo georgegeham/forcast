@@ -10,6 +10,7 @@ import {
 } from "@/services/Users";
 import { requireAdmin } from "@/lib/auth/admin";
 import { revalidatePath } from "next/cache";
+import { notifyAllActors } from "@/drizzle/services/Notifications";
 import z from "zod";
 
 export const createUserProfile = async (
@@ -22,6 +23,14 @@ export const createUserProfile = async (
     const user = await getUserProfile(userId);
     if (!user?.completedProfile) {
       await markUserProfileComplete(userId);
+      const completedUser = await getUserProfile(userId);
+      if (completedUser?.name) {
+        await notifyAllActors({
+          type: "new_actor",
+          title: `${completedUser.name} joined as an actor`,
+          link: `/actors/${userId}`,
+        });
+      }
     }
     return { error: false, message: "Profile created successfully" };
   } catch (e) {
@@ -43,6 +52,14 @@ export const updateUserProfile = async (
     const user = await getUserProfile(userId);
     if (!user?.completedProfile) {
       await markUserProfileComplete(userId);
+      const completedUser = await getUserProfile(userId);
+      if (completedUser?.name) {
+        await notifyAllActors({
+          type: "new_actor",
+          title: `${completedUser.name} joined as an actor`,
+          link: `/actors/${userId}`,
+        });
+      }
     }
     return { error: false, message: "Profile updated successfully" };
   } catch (e) {

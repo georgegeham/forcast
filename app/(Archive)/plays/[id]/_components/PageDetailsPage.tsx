@@ -24,7 +24,6 @@ import {
   Plus,
   MessageSquare,
   Send,
-  Trash2,
   Pencil,
 } from "lucide-react";
 import type {
@@ -34,7 +33,7 @@ import type {
   Video,
   Comment,
 } from "@/drizzle/Types/types";
-import { authClient } from "@/lib/auth/client_auth";
+import { useSession } from "@/lib/auth/hooks/useSession";
 
 import { Textarea } from "@/components/ui/textarea";
 import { SectionHeading, Lightbox } from "./UI";
@@ -60,11 +59,12 @@ type ModalType = "photos" | "video" | "trophy" | "festival" | null;
 
 export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
   const router = useRouter();
+  const sessionUser = useSession();
+  const userId = sessionUser?.id ?? null;
+  const userName = sessionUser?.name ?? null;
+  const userImage = sessionUser?.image ?? null;
+  const userRole = sessionUser?.role ?? null;
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userImage, setUserImage] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [modal, setModal] = useState<ModalType>(null);
 
   const localImages = play?.images ?? [];
@@ -97,18 +97,6 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    authClient.getSession().then((session) => {
-      const user = session?.data?.user;
-      if (user?.id) {
-        setUserId(user.id);
-        setUserName(user.name ?? null);
-        setUserImage(user.image ?? null);
-        setUserRole((user as { role?: string }).role ?? null);
-      }
-    });
-  }, []);
 
   if (!play) {
     return (
@@ -273,7 +261,8 @@ export default function PlayDetailsPage({ play }: { play: PlayDetails }) {
                       actor?.user?.email?.split("@")[0] ??
                       "Actor";
                     const image = actor?.user?.image
-                      ? `${actor.user.image}?v=${actor.user.updatedAt?.getTime() ?? Date.now()}`
+                      ? // eslint-disable-next-line react-hooks/purity
+                        `${actor.user.image}?v=${actor.user.updatedAt?.getTime() ?? Date.now()}`
                       : undefined;
                     const isWriter = userId && play.writer_Id === userId;
                     const isDirector = userId && play.director_Id === userId;
